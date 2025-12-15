@@ -1,7 +1,8 @@
 import { generateText, streamText, generateObject } from 'ai';
 import { createStreamableValue } from '@ai-sdk/rsc';
 import { createOpenAI } from '@ai-sdk/openai';
-import { OPENAI_BASE_URL, OPENAI_SECRET_KEY } from '@/app/config';
+import { createDeepSeek } from '@ai-sdk/deepseek';
+import { OPENAI_BASE_URL, OPENAI_SECRET_KEY, DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL, AI_SECRET_KEY, AI_BASE_URL } from '@/app/config';
 import { removeBase64Prefix } from '@/utility/image';
 import { cleanUpAiTextResponse } from '@/photo/ai';
 import {
@@ -9,20 +10,37 @@ import {
 } from '@/platforms/rate-limit';
 import { z } from 'zod';
 
+// DeepSeek configuration
+export const IS_DEEPSEEK = DEEPSEEK_API_KEY && (DEEPSEEK_BASE_URL?.includes('deepseek') || OPENAI_BASE_URL?.includes('deepseek'));
+
 const checkRateLimitAndThrow = (isBatch?: boolean) =>
   _checkRateLimitAndThrow({
     identifier: 'openai-image-query',
     ...isBatch && { tokens: 1200, duration: '1d' },
   });
 
-const MODEL: Parameters<NonNullable<typeof openai>>[0] = 'gpt-5.1';
+// Model configuration
+const OPENAI_MODEL = 'gpt-5.1';
+const DEEPSEEK_MODEL = 'deepseek-chat';
 
+// Create AI client instances
 const openai = OPENAI_SECRET_KEY
   ? createOpenAI({
-    apiKey: OPENAI_SECRET_KEY,
-    ...OPENAI_BASE_URL && { baseURL: OPENAI_BASE_URL },
-  })
+      apiKey: OPENAI_SECRET_KEY,
+      ...OPENAI_BASE_URL && { baseURL: OPENAI_BASE_URL },
+    })
   : undefined;
+
+const deepseek = AI_SECRET_KEY
+  ? createDeepSeek({
+      apiKey: AI_SECRET_KEY,
+      ...AI_BASE_URL && { baseURL: AI_BASE_URL },
+    })
+  : undefined;
+
+// Use DeepSeek if configured, otherwise fall back to OpenAI
+const aiClient = IS_DEEPSEEK ? deepseek : openai;
+const MODEL = IS_DEEPSEEK ? DEEPSEEK_MODEL : OPENAI_MODEL;
 
 const getImageTextArgs = (
   imageBase64: string,
@@ -30,8 +48,8 @@ const getImageTextArgs = (
 ): (
   Parameters<typeof streamText>[0] &
   Parameters<typeof generateText>[0]
-) | undefined => openai ? {
-  model: openai(MODEL),
+) | undefined => aiClient ? {
+  model: aiClient(MODEL),
   messages: [{
     'role': 'user',
     'content': [
@@ -92,9 +110,9 @@ export const generateOpenAiImageObjectQuery = async <T extends z.ZodSchema>(
 ): Promise<z.infer<T>> => {
   await checkRateLimitAndThrow(isBatch);
 
-  if (openai) {
+  if (aiClient) {
     return generateObject({
-      model: openai(MODEL),
+      model: aiClient(MODEL),
       messages: [{
         'role': 'user',
         'content': [
@@ -113,16 +131,16 @@ export const generateOpenAiImageObjectQuery = async <T extends z.ZodSchema>(
       .map(([k, v]) => [k, cleanUpAiTextResponse(v as string)]),
     ) as z.infer<T>);
   } else {
-    throw new Error('No OpenAI client');
+    throw new Error('No AI client available');
   }
 };
 
 export const testOpenAiConnection = async () => {
   await checkRateLimitAndThrow();
 
-  if (openai) {
+  if (aiClient) {
     return generateText({
-      model: openai(MODEL),
+      model: aiClient(MODEL),
       messages: [{
         'role': 'user',
         'content': [

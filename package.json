@@ -10,6 +10,7 @@
   },
   "packageManager": "pnpm@10.25.0",
   "dependencies": {
+    "@ai-sdk/deepseek": "^1.0.32",
     "@ai-sdk/openai": "^2.0.85",
     "@ai-sdk/rsc": "^1.0.114",
     "@aws-sdk/client-s3": "3.948.0",
@@ -52,6 +53,7 @@
     "swr": "^2.3.7",
     "ts-exif-parser": "^0.2.2",
     "use-debounce": "^10.0.6",
+    "vercel": "^50.0.1",
     "viewerjs": "^1.11.7",
     "zod": "^4.1.13"
   },
@@ -67,8 +69,8 @@
     "@types/culori": "^4.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.1",
-    "@types/piexifjs": "^1.0.0",
     "@types/pg": "^8.16.0",
+    "@types/piexifjs": "^1.0.0",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@types/sanitize-html": "^2.16.0",
@@ -80,6 +82,7 @@
     "postcss": "8.5.6",
     "tailwindcss": "4.1.18",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "5.9.3"
   },
   "pnpm": {
