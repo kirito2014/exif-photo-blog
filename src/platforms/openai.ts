@@ -31,10 +31,10 @@ const openai = OPENAI_SECRET_KEY
     })
   : undefined;
 
-const deepseek = AI_SECRET_KEY
+const deepseek = DEEPSEEK_API_KEY
   ? createDeepSeek({
-      apiKey: AI_SECRET_KEY,
-      ...AI_BASE_URL && { baseURL: AI_BASE_URL },
+      apiKey: DEEPSEEK_API_KEY,
+      ...DEEPSEEK_BASE_URL && { baseURL: DEEPSEEK_BASE_URL },
     })
   : undefined;
 
